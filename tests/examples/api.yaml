@@ -1,0 +1,29 @@
+#
+responseTemplate:
+  fields:
+    code: status
+    msg: retMsg
+    data: data
+  successCode: SUCCESS
+codeGeneration:
+  snakeCaseStyle: false
+  functionNameLevel: 1
+environment:
+  sit:
+    apiUrlRoot: https://sit-site/
+    dbLink: sqlite:///db.sqlite
+  uat:
+    apiUrlRoot: https://uat-site/
+    dbLink:
+      db0: sqlite:///db.sqlite
+      db1: sqlite:///db1.sqlite
+apis:
+  vairablesInTemplate:
+    path: aa
+    request: {id: '${1+1}', d: {x: [1, 888, 3]}}
+  postprocessor:
+    path: aaa/bbb/xxx1
+    method: get
+  Dummy:
+    path: dummy
+
