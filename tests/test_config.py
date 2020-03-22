@@ -1,23 +1,23 @@
 import os
 
-from passor.config import config, set_env, get_env
+from passor.config import Config, set_env, get_env
 
 
 def test_get():
+    config = Config(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'examples', 'config.ini'))
+
     assert config.get('test', 'dummy') == '123', 'should parse and get value from the file'
-    assert config.get('test', 'dummy', 'ddd') == '123', 'should parse and get value from the file'
+    assert config.get('test', 'dummy', 'ddd') == '123', 'when config found in file, should ignore default value'
+    assert config.get('sec1', 'dummy', 'ddd') == 'ddd', 'when config is missing, should use default value'
+    config.file = ""
+    assert config.get('test', 'dummy') == '123', 'when file loaded, should reuse the data'
 
-    assert config.get('sec1', 'dummy', 'ddd') == 'ddd', 'when config is missing, should get default value'
+    # abnormal args
+    assert config.get('test', 'key1') == config.get('', 'key1') == config.get('test', '') == \
+           config.get('sec1', 'dummy') == '', 'when section is missing, should get empty value'
 
-    assert config.get('test', 'key1') == '', 'when key is missing, should get empty value'
-    assert config.get('sec1', 'dummy') == '', 'when section is missing, should get empty value'
-
-    tmp = config.file
-    try:
-        config.file = 'not_exist.ini'
-        assert config.get('test', 'dummy') == '', 'when config file is missing, should get empty value'
-    finally:
-        config.file = tmp
+    conf_err = Config('not_exist.ini')
+    assert conf_err.get('test', 'dummy') == '', 'when config file is missing, should get empty value'
 
 
 def test_set_env():

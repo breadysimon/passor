@@ -10,23 +10,33 @@ LOG_FORMAT = '%(asctime)s [{job_id}] %(name)s %(levelname)-8s %(lineno)-2d  %(me
 class Config:
     def __init__(self, file):
         self.data = None
-        self.reload = True
+        self._reload = True
         self.file = file
 
     def get(self, section, key, default=''):
-        if os.path.exists(self.file):
-            if self.reload:
+
+        # load config file if data is not ready
+        if self.data is None:
+            if os.path.exists(self.file):
                 self.data = ConfigParser()
                 print("Load config file: ", self.file)
                 self.data.read(self.file)
-                self.reload = False
+            else:
+                print("cannot find the configuration file: ", self.file)
+
+        # get value
+        if self.data:
             try:
                 return self.data.get(section, key)
             except Error as e:
                 print(e)
-        else:
-            print("Can't find the configuration file: ", self.file)
+
+        print(f'cannot find {section}/{key}, default value "{default}" used')
         return default
+
+
+def reload(self):
+    self.data = None
 
 
 def get_env():
