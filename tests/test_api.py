@@ -18,3 +18,4 @@ def api() -> ExampleApi:
     config.set_env('sit')
     api0 = ExampleApi()
     yield api0
+
