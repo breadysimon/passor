@@ -7,8 +7,7 @@ from pygelf import GelfTcpHandler
 import os
 import requests
 
-LOG_CONFIG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'etc', 'passart.ini')
-LOG_FORMAT = '%(asctime)s [{job_id}] %(name)s %(levelname)-8s %(lineno)-2d  %(message)s'
+from passor import config
 
 
 class GELFLevel:
@@ -19,30 +18,32 @@ class GELFLevel:
     CRITICAL = 2
 
 
-def load_config(filename):
-    cf = ConfigParser()
-    data = cf.read(filename)
-    if len(data) == 0:
-        raise ValueError(f'加载配置文件失败,filename={filename}')
+# def load_config(filename):
+#     cf = ConfigParser()
+#     data = cf.read(filename)
+#     if len(data) == 0:
+#         raise ValueError(f'加载配置文件失败,filename={filename}')
+#
+#     if os.environ.get('DEBUG', default='').upper() == 'TRUE':
+#         cf.set('log', 'DEBUG', 'True')
+#
+#     cf.add_section('runtime')
+#
+#     return cf
 
-    if os.environ.get('DEBUG', default='').upper() == 'TRUE':
-        cf.set('log', 'DEBUG', 'True')
-
-    cf.add_section('runtime')
-
-    return cf
+def get_job_id():
+    return int( os.environ.get('JOB_ID', '0'))
 
 
 def init_logger(name=None):
-    job_id = int(config.get('runtime', 'JOB_ID'))
+    job_id = get_job_id()
     logger = logging.getLogger(name)
 
     # TODO: log level
     logger.setLevel(logging.DEBUG)
 
-
     if 3 > len(logger.handlers):
-        formatter = logging.Formatter(LOG_FORMAT.format(job_id=job_id))
+        formatter = logging.Formatter(config.LOG_FORMAT.format(job_id=job_id))
 
         # Standard handler
         handler = logging.StreamHandler()
@@ -51,18 +52,18 @@ def init_logger(name=None):
         logger.addHandler(handler)
 
         # File handler
-        log_file = config.get('log', 'LOG_FILE').format(job_id=job_id)
+        log_file = config.get_config('log', 'LOG_FILE').format(job_id=job_id)
         os.makedirs(os.path.dirname(log_file), exist_ok=True)
         handler_file = RotatingFileHandler(filename=log_file, maxBytes=10 * 1024 * 1024, backupCount=7)
         handler_file.setFormatter(formatter)
         logger.addHandler(handler_file)
 
         # Graylog handler
-        logger.addHandler(GelfTcpHandler(host=config.get('log', 'GRAYLOG_SERVER'),
+        logger.addHandler(GelfTcpHandler(host=config.get_config('log', 'GRAYLOG_SERVER'),
                                          debug=True,
-                                         port=config.get('log', 'GRAYLOG_TCP_PORT'),
+                                         port=config.get_config('log', 'GRAYLOG_TCP_PORT'),
                                          trace_id=job_id,
-                                         source_tag='passart',
+                                         source_tag='passor',
                                          include_extra_fields=True,
                                          ))
 
@@ -95,5 +96,5 @@ def query_graylog(job_id, level=3, range=300, limit=150, keyword=''):
 
 
 # logger
-config = load_config(LOG_CONFIG_FILE)
+# config = load_config(LOG_CONFIG_FILE)
 rootLogger = init_logger()

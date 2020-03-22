@@ -1,13 +1,32 @@
 import os
-from configparser import ConfigParser
+import sys
+from configparser import ConfigParser, Error
 
-APP_CONFIG_FILE = '/etc/default.ini'
+# Default config
+APP_CONFIG_FILE = 'D:/Dev/py/etc/default.ini'
+LOG_FORMAT = '%(asctime)s [{job_id}] %(name)s %(levelname)-8s %(lineno)-2d  %(message)s'
 
 
-def get_config(section, key):
-    cf = ConfigParser()
-    cf.read(APP_CONFIG_FILE)
-    return cf.get(section, key)
+class Config:
+    def __init__(self, file):
+        self.data = None
+        self.reload = True
+        self.file = file
+
+    def get(self, section, key, default=''):
+        if os.path.exists(self.file):
+            if self.reload:
+                self.data = ConfigParser()
+                print("Load config file: ", self.file)
+                self.data.read(self.file)
+                self.reload = False
+            try:
+                return self.data.get(section, key)
+            except Error as e:
+                print(e)
+        else:
+            print("Can't find the configuration file: ", self.file)
+        return default
 
 
 def get_env():
@@ -19,3 +38,6 @@ def get_env():
 def set_env(env):
     """ only used for debugging. """
     os.environ['DEBUG_ENV'] = env
+
+
+config = Config(APP_CONFIG_FILE)
