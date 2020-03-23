@@ -8,6 +8,7 @@ packaging==20.3
 pluggy==0.13.1
 py==1.8.1
 pygelf==0.3.6
+PyHamcrest==2.0.2
 pyparsing==2.4.6
 pytest==5.4.1
 requests==2.23.0

@@ -1,13 +1,13 @@
 import logging
+import os
 import urllib
-from configparser import ConfigParser
 from logging.handlers import RotatingFileHandler
 from urllib.parse import urlencode
-from pygelf import GelfTcpHandler
-import os
-import requests
 
-from passor import config
+import requests
+from pygelf import GelfTcpHandler
+
+from passor.config import config
 
 
 class GELFLevel:
@@ -32,7 +32,7 @@ class GELFLevel:
 #     return cf
 
 def get_job_id():
-    return int( os.environ.get('JOB_ID', '0'))
+    return int(os.environ.get('JOB_ID', '0'))
 
 
 def init_logger(name=None):
@@ -43,7 +43,8 @@ def init_logger(name=None):
     logger.setLevel(logging.DEBUG)
 
     if 3 > len(logger.handlers):
-        formatter = logging.Formatter(config.LOG_FORMAT.format(job_id=job_id))
+        fmt = config.get('log', 'LOG_FORMAT')
+        formatter = logging.Formatter(fmt.format(job_id=job_id))
 
         # Standard handler
         handler = logging.StreamHandler()
@@ -52,7 +53,8 @@ def init_logger(name=None):
         logger.addHandler(handler)
 
         # File handler
-        log_file = config.get_config('log', 'LOG_FILE').format(job_id=job_id)
+        f = config.get('log', 'LOG_FILE')
+        log_file = f.format(job_id=job_id)
         os.makedirs(os.path.dirname(log_file), exist_ok=True)
         handler_file = RotatingFileHandler(filename=log_file, maxBytes=10 * 1024 * 1024, backupCount=7)
         handler_file.setFormatter(formatter)
