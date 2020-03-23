@@ -2,24 +2,22 @@ import os
 import sys
 from configparser import ConfigParser, Error
 
+
 # Default config
-APP_CONFIG_FILE = 'D:/Dev/py/etc/default.ini'
-LOG_FORMAT = '%(asctime)s [{job_id}] %(name)s %(levelname)-8s %(lineno)-2d  %(message)s'
 
 
 class Config:
     def __init__(self, file):
         self.data = None
-        self._reload = True
         self.file = file
 
     def get(self, section, key, default=''):
 
         # load config file if data is not ready
         if self.data is None:
+            print("Load config file: ", self.file)
             if os.path.exists(self.file):
                 self.data = ConfigParser()
-                print("Load config file: ", self.file)
                 self.data.read(self.file)
             else:
                 print("cannot find the configuration file: ", self.file)
@@ -27,7 +25,9 @@ class Config:
         # get value
         if self.data:
             try:
-                return self.data.get(section, key)
+                v = self.data.get(section, key)
+                print(f'got config {section}/{key} = {v}')
+                return v
             except Error as e:
                 print(e)
 
@@ -50,4 +50,10 @@ def set_env(env):
     os.environ['DEBUG_ENV'] = env
 
 
-config = Config(APP_CONFIG_FILE)
+def get_config_file():
+    default = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'etc', 'default.ini')
+    v = os.environ.get('PASSOR_CONFIG', default)
+    return v
+
+
+config = Config(get_config_file())

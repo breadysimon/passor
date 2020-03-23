@@ -53,17 +53,16 @@ def init_logger(name=None):
         logger.addHandler(handler)
 
         # File handler
-        f = config.get('log', 'LOG_FILE')
-        log_file = f.format(job_id=job_id)
+        log_file = config.get('log', 'LOG_FILE').format(job_id=job_id)
         os.makedirs(os.path.dirname(log_file), exist_ok=True)
         handler_file = RotatingFileHandler(filename=log_file, maxBytes=10 * 1024 * 1024, backupCount=7)
         handler_file.setFormatter(formatter)
         logger.addHandler(handler_file)
 
         # Graylog handler
-        logger.addHandler(GelfTcpHandler(host=config.get_config('log', 'GRAYLOG_SERVER'),
+        logger.addHandler(GelfTcpHandler(host=config.get('log', 'GRAYLOG_SERVER'),
                                          debug=True,
-                                         port=config.get_config('log', 'GRAYLOG_TCP_PORT'),
+                                         port=config.get('log', 'GRAYLOG_TCP_PORT'),
                                          trace_id=job_id,
                                          source_tag='passor',
                                          include_extra_fields=True,
