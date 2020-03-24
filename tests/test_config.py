@@ -13,11 +13,17 @@ def test_get():
     assert config.get('test', 'dummy') == '123', 'when file loaded, should reuse the data'
 
     # abnormal args
-    assert config.get('test', 'key1') == config.get('', 'key1') == config.get('test', '') == \
-           config.get('sec1', 'dummy') == '', 'when section is missing, should get empty value'
+    assert config.get('test', 'key1') is config.get('', 'key1') is config.get('test', '') is \
+           config.get('sec1', 'dummy') is None, 'when section is missing, should get empty value'
 
     conf_err = Config('not_exist.ini')
-    assert conf_err.get('test', 'dummy') == '', 'when config file is missing, should get empty value'
+    assert conf_err.get('test', 'dummy') == None, 'when config file is missing, should get empty value'
+
+    config.add('sec2', 'key2', '1', 'TMP_CF')
+    assert config.get('sec2', 'key2') == '1', 'when preset, should use preset default value'
+
+    os.environ['TMP_CF'] = 'aaa'
+    assert config.get('sec2', 'key2') == 'aaa', 'when env name is preset and os env is set, should use environ value'
 
 
 def test_set_env():

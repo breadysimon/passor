@@ -1,5 +1,4 @@
 import os
-import sys
 from configparser import ConfigParser, Error
 
 
@@ -10,8 +9,16 @@ class Config:
     def __init__(self, file):
         self.data = None
         self.file = file
+        self.preset = {}
 
-    def get(self, section, key, default=''):
+    def get(self, section, key, default=None):
+        k = f'{section}/{key}'
+        if k in self.preset:
+            e = self.preset[k]['environ']
+            if e in os.environ:
+                return os.environ[e]
+            if default is None:
+                default = self.preset[k]['default']
 
         # load config file if data is not ready
         if self.data is None:
@@ -33,6 +40,11 @@ class Config:
 
         print(f'cannot find {section}/{key}, default value "{default}" used')
         return default
+
+    def add(self, section, key, default, environ):
+        """ configuration priorities: os env variable > config file > argument default > preset default. """
+        k = f'{section}/{key}'
+        self.preset[k] = dict(default=default, environ=environ)
 
 
 def reload(self):

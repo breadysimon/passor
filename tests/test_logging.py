@@ -6,11 +6,11 @@ from random import random
 
 import pytest
 from hamcrest import *
-from hamcrest import assert_that, is_not, calling, raises
+from hamcrest import assert_that
 from retry.api import retry_call
 
 from passor import util
-from passor.logging import get_logger, init_logger, query_graylog, GELFLevel, config
+from passor.logging import get_logger, init_logger, query_graylog, GELFLevel
 from passor.testing import GoldenFile
 
 
@@ -31,10 +31,8 @@ def test_generic_usage(capsys):
     assert_that(text, equal_to(gf1.read()))
 
 
-@pytest.mark.skipif(sys.platform == 'darwin', reason='too slow')
+@pytest.mark.skipif(sys.platform != 'linux', reason='cant only test it on server side')
 def test_graylog():
-    """将日志提交到Graylog,再从Graylog查询得到不同级别的日志"""
-
     logger = get_logger(__name__)
 
     rand = str(random())
@@ -43,7 +41,7 @@ def test_graylog():
     logger.error(err_msg)
     logger.debug(debug_msg)
     try:
-        x = 1 / 0
+        1 / 0
     except:
         logger.exception('some exception' + rand)
 
@@ -55,15 +53,6 @@ def test_graylog():
         assert_that(ret2, not (contains_string(debug_msg)))
         assert_that(ret2, contains_string('Traceback'))
 
-    # graylog的延时时长不确定，所以重试等待, 最长60s
+    # it's difficult to make sure how long the delay will be. force to retry 60s.
     retry_call(fetch, tries=20, delay=3)
 
-
-def test_config():
-    """加载配置文件成功后读取配置"""
-    assert_that(config.get('log', 'GRAYLOG_SERVER'), is_not(''))
-
-
-def test_config_missing_file():
-    """加载配置文件失败抛出异常"""
-    assert_that(calling(load_config).with_args('non_exist'), raises(ValueError))
