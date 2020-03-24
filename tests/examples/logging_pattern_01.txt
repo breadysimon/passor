@@ -1,0 +1,2 @@
+2020-00-00 00:00:00,000 [0] xxx.test_logging ERROR    24  this is an error level message.
+2020-00-00 00:00:00,000 [0] xxx.test_logging INFO     25  this is an info level message.
