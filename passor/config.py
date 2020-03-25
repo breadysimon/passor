@@ -46,9 +46,11 @@ class Config:
         k = f'{section}/{key}'
         self.preset[k] = dict(default=default, environ=environ)
 
+    def set(self,section,key,value):
+        self.data.set(section,key,value)
 
-def reload(self):
-    self.data = None
+    def reload(self):
+        self.data = None
 
 
 def get_env():

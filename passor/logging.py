@@ -35,12 +35,22 @@ def get_job_id():
     return int(os.environ.get('JOB_ID', '0'))
 
 
-def init_logger(name=None):
-    job_id = get_job_id()
-    logger = logging.getLogger(name)
+LOG_LEVEL = {
+    'DEBUG': logging.DEBUG,
+    'WARN': logging.WARN,
+    'ERROR': logging.ERROR,
+    'INFO': logging.INFO,
+}
 
-    # TODO: log level
-    logger.setLevel(logging.DEBUG)
+
+def get_log_level(s):
+    return LOG_LEVEL.get(s, logging.INFO)
+
+
+def init_logger(name=None):
+    logger = logging.getLogger(name)
+    job_id = get_job_id()
+    logger.setLevel(get_log_level(config.get('log', 'level')))
 
     if 3 > len(logger.handlers):
         fmt = config.get('log', 'LOG_FORMAT')

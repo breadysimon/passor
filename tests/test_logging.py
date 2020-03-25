@@ -10,23 +10,24 @@ from hamcrest import assert_that
 from retry.api import retry_call
 
 from passor import util
+from passor.config import config
 from passor.logging import get_logger, init_logger, query_graylog, GELFLevel
 from passor.testing import GoldenFile
 
 
-def test_generic_usage(capsys):
-    os.environ['DEBUG'] = 'TRUE'
+@pytest.mark.parametrize('level', ['ERROR' ,'DEBUG'])
+def test_generic_usage(capsys, level):
+    config.set('log', 'level', level)
 
-    # have to start after capsys is defined for capture log
-    mock_root = init_logger('xxx')
-    logger = mock_root.getChild(__name__)
+    l = init_logger(level.lower())
+    logger = l.getChild(__name__)
 
     logger.error('this is an error level message.')
     logger.info('this is an info level message.')
 
     text = re.sub(r'-\d+-\d+\s+\d+:\d+\:\d+\,\d+', repl='-00-00 00:00:00,000', string=capsys.readouterr().err)
     text = re.sub(r':\d+:', repl=':00:', string=text)
-    gf1 = GoldenFile(util.get_src_path(__file__, 'examples', 'logging_pattern_01.txt'))
+    gf1 = GoldenFile(util.get_src_path(__file__, 'examples', f'logging_pattern_{level}.txt'))
     # gf1.make(text)
     assert_that(text, equal_to(gf1.read()))
 
@@ -55,4 +56,3 @@ def test_graylog():
 
     # it's difficult to make sure how long the delay will be. force to retry 60s.
     retry_call(fetch, tries=20, delay=3)
-
