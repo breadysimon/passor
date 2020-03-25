@@ -1,0 +1,1 @@
+2020-00-00 00:00:00,000 [0] error.test_logging ERROR    25  this is an error level message.

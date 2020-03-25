@@ -1,0 +1,2 @@
+2020-00-00 00:00:00,000 [0] debug.test_logging ERROR    25  this is an error level message.
+2020-00-00 00:00:00,000 [0] debug.test_logging INFO     26  this is an info level message.
