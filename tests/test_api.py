@@ -4,7 +4,8 @@ import pytest
 import requests_mock
 
 from passor import config
-from passor.api import Application
+from passor.apiclient import Application
+
 from passor.logging import rootLogger
 
 logger = rootLogger.getChild(__name__)
