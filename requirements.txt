@@ -1,6 +1,7 @@
 attrs==19.3.0
 certifi==2019.11.28
 chardet==3.0.4
+decorator==4.4.2
 idna==2.9
 importlib-metadata==1.5.0
 more-itertools==8.2.0
@@ -12,6 +13,8 @@ PyHamcrest==2.0.2
 pyparsing==2.4.6
 pytest==5.4.1
 requests==2.23.0
+requests-mock==1.7.0
+retry==0.9.2
 six==1.14.0
 urllib3==1.25.8
 wcwidth==0.1.8
