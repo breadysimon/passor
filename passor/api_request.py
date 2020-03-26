@@ -7,6 +7,7 @@ from urllib.parse import urlparse, parse_qs
 from box import Box
 from simplejson import JSONDecodeError
 
+from passor.config import get_env
 from passor.logging import rootLogger
 from passor.template import Template
 
