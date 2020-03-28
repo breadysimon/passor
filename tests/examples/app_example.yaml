@@ -1,4 +1,3 @@
-#
 responseTemplate:
   fields:
     code: status
@@ -17,13 +16,3 @@ environments:
     dbLink:
       db0: sqlite:///db.sqlite
       db1: sqlite:///db1.sqlite
-apis:
-  vairablesInTemplate:
-    path: aa
-    request: {id: '${1+1}', d: {x: [1, 888, 3]}}
-  postprocessor:
-    path: aaa/bbb/xxx1
-    method: get
-  Dummy:
-    path: dummy
-

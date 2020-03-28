@@ -2,14 +2,52 @@ import json
 import os
 import re
 
+from box import Box
+
 from passor.logging import rootLogger
 
 logger = rootLogger.getChild(__name__)
 
 
+class ApplicationFactory:
+    apps = {}
+
+    def __init__(self, config_home):
+        self.config_home = config_home
+
+    def get_app(self, name, env):
+        f = os.path.join(self.config_home, f'app_{name}.yaml')
+        spec = Box.from_yaml(filename=f)
+        app = Application(name, spec, env)
+        return app
+
+
 class Application:
-    def __init__(self, js):
-        self.config = json.loads(js)
+    @staticmethod
+    def validate_spec(spec, env):
+        valid, msg = True, ""
+        if 'environments' not in spec:
+            valid = False
+            msg = 'no environments config found'
+        elif env not in spec.environments:
+            valid = False
+            msg = f'"{env} is not found in environments"'
+
+        return valid, msg
+
+    def __init__(self, name, spec, env):
+        valid, msg = self.validate_spec(spec, env)
+        if not valid:
+            logger.error(f'invalid application config: {msg}')
+            return
+
+        self.name = name
+        self.response_enveloped = False
+        if 'responseTemplate' in spec:
+            self.response_enveloped = True
+            self.response_fields = spec.responseTemplate.fields
+            self.success_code = spec.responseTemplate.successCode
+        self.environmental_config = spec.environments[env]
 
     def create_api_client(self, js):
         return ApiClient(self, js)
