@@ -16,3 +16,8 @@ env:
     dbLink:
       db0: sqlite:///db.sqlite
       db1: sqlite:///db1.sqlite
+apis:
+  generic:
+    path: aaa/bbb/xxx
+    response:
+      AAA: {x: 1, y: '2'}

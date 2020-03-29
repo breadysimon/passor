@@ -3,46 +3,24 @@ import logging
 import pytest
 import requests_mock
 
-from passor import config
-from passor.apiclient import Application
+from passor import config, util
+from passor.apiclient import Application, ServiceCallerFactory
 
 from passor.logging import rootLogger
 
 logger = rootLogger.getChild(__name__)
 logger.setLevel(logging.DEBUG)
 
-APP_CONFIG='''
-responseTemplate:
-  fields:
-    code: status
-    msg: retMsg
-    data: data
-  successCode: SUCCESS
-codeGeneration:
-  snakeCaseStyle: false
-  functionNameDepth: 1
-environments:
-  sit:
-    apiRoot: https://sit-console.ctcfin.com
-    dbConnection: sqlite:///db.sqlite
-  uat:
-    apiRoot: https://uat-console.ctcfin.com
-    dbConnection:
-      db0: sqlite:///db.sqlite
-      db1: sqlite:///db1.sqlite
-
-'''
 API_SPEC_1='''
-path: aaa/bbb/xxx
-response:
-  AAA: {x: 1, y: '2'}
+
 '''
 
 @pytest.fixture
 def api():
-    app = Application(APP_CONFIG)
     config.set_env('sit')
-    api0 = app.create_api_client(API_SPEC_1)
+
+    app = ServiceCallerFactory(util.get_relative_path(__file__,'examples')).get_caller('example')
+    api0 = app.create_api_client('generic')
     yield api0
 
 

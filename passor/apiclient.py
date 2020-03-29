@@ -3,8 +3,9 @@ import os
 import re
 
 from box import Box
+from ruamel import yaml
 
-from passor.config import config
+from passor.config import config, get_env
 from passor.logging import rootLogger
 
 logger = rootLogger.getChild(__name__)
@@ -16,30 +17,33 @@ class ServiceCallerFactory:
     def __init__(self, config_home):
         self.config_home = config_home
 
-    def get_caller(self, name, env):
-        f = os.path.join(self.config_home, f'app_{name}.yaml')
-        spec = Box.from_yaml(filename=f)
-        app = Application(name, spec, env)
+    def get_caller(self, name):
+        path = os.path.join(self.config_home, f'app_{name}.yaml')
+        with open(path, 'r') as f:
+            spec = yaml.safe_load(f)
+            app = Application(name, spec)
         return app
 
 
 class Application:
+    def __init__(self, name, spec):
+        self.name = name
+        self.envelope = {}
+        self.env = 'sit'
+        self.L = config.get_locale('en')
+        self.load_spec(spec)
+
     def validate_spec(self, spec):
         valid, msg = True, ""
+        env = get_env()
         if self.L.CFG_ENV not in spec:
             valid = False
             msg = 'no environments config found'
-        elif self.env not in spec.env:
+        elif env not in spec[self.L.CFG_ENV]:
             valid = False
-            msg = f'"{self.env} is not found in environments"'
+            msg = f'"{env} is not found in environments"'
 
         return valid, msg
-
-    def __init__(self, name, spec, env):
-        self.name = name
-        self.env = env
-        self.L = config.get_locale('en')
-        self.load_spec(spec)
 
     def load_spec(self, spec):
         valid, msg = self.validate_spec(spec)
@@ -47,20 +51,22 @@ class Application:
             logger.error(f'invalid application config: {msg}')
             return
 
-        self.enveloped = self.L.CFG_RESPONSE in spec
-        if self.enveloped:
-            self.response_fields = spec[self.L.CFG_RESPONSE][self.L.CFG_FIELDS]
-            self.success_code = spec[self.L.CFG_RESPONSE][self.L.CFG_SUCC_CODE]
-        self.environmental_config = spec[self.L.CFG_ENV][self.env]
+        if self.L.CFG_RESPONSE in spec:
+            self.envelope['fields'] = spec[self.L.CFG_RESPONSE][self.L.CFG_FIELDS]
+            self.envelope['success_code'] = spec[self.L.CFG_RESPONSE][self.L.CFG_SUCC_CODE]
+        env = get_env()
+        self.root_uri = spec[self.L.CFG_ENV][env][self.L.CFG_BASE_URI]
+        self.dbLink = spec[self.L.CFG_ENV][env][self.L.CFG_DB_URI]
+        self.apis = spec[self.L.CFG_API_SPEC]
 
-    def create_api_client(self, js):
-        return ApiClient(self, js)
+    def create_api_client(self, name):
+        return ApiClient(self, self.apis[name])
 
 
 class ApiClient:
-    def __init__(self, app, js):
+    def __init__(self, app, spec):
         self.app = app
-        self.config = json.loads(js)
+        self.config = spec
 
 
 def _is_json(p):
