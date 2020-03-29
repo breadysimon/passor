@@ -1,8 +1,8 @@
 import os
 from configparser import ConfigParser, Error
 
-
 # Default config
+import passor
 
 
 class Config:
@@ -46,11 +46,19 @@ class Config:
         k = f'{section}/{key}'
         self.preset[k] = dict(default=default, environ=environ)
 
-    def set(self,section,key,value):
-        self.data.set(section,key,value)
+    def set(self, section, key, value):
+        self.data.set(section, key, value)
 
     def reload(self):
         self.data = None
+
+    def get_locale(self, name):
+        if name == "zh":
+            from passor.locale.zh import zh
+            return zh
+        else:
+            from passor.locale.en import en
+            return en
 
 
 def get_env():
