@@ -3,6 +3,7 @@ from configparser import ConfigParser, Error
 
 # Default config
 import passor
+from passor.locale import zh, en
 
 
 class Config:
@@ -54,10 +55,8 @@ class Config:
 
     def get_locale(self, name):
         if name == "zh":
-            from passor.locale.zh import zh
             return zh
         else:
-            from passor.locale.en import en
             return en
 
 
