@@ -27,7 +27,10 @@ def test_get():
 
 
 def test_set_env():
+    bkup = os.environ.get('CONTEXT_ENV','')
+    os.environ['CONTEXT_ENV'] = ''
     set_env('sit')
     assert get_env() == 'sit', 'when not running in test platform, the debug env setting should be used.'
     os.environ['CONTEXT_ENV'] = 'uat'
     assert get_env() == 'uat', 'when running in test platform, env should be set by runtime environment.'
+    os.environ['CONTEXT_ENV'] = bkup

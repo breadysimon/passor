@@ -3,30 +3,24 @@ import logging
 import pytest
 import requests_mock
 
-from passor import config
-from passor.apiclient import ApplicationBuilder
+from passor import config, util
+from passor.apiclient import Application, ServiceCallerFactory
+
 from passor.logging import rootLogger
 
 logger = rootLogger.getChild(__name__)
 logger.setLevel(logging.DEBUG)
 
-API_SPEC_1 = '''
-path: aaa/bbb/xxx
-response:
-  AAA: {x: 1, y: '2'}
-'''
+API_SPEC_1='''
 
+'''
 
 @pytest.fixture
 def api():
-    app = ApplicationBuilder() \
-        .add_environment('sit', api_root='https://sit-console.ctcfin.com', db_connections='sqlite:///db.sqlite') \
-        .add_environment('uat',
-                         api_root='https://sit-console.ctcfin.com',
-                         db_connections=dict(db0='sqlite:///db.sqlite', db1='sqlite:///db1.sqlite')) \
-        .build()
     config.set_env('sit')
-    api0 = app.create_api_client(API_SPEC_1)
+
+    app = ServiceCallerFactory(util.get_relative_path(__file__,'examples')).get_caller('example')
+    api0 = app.create_api_client('generic')
     yield api0
 
 

@@ -27,7 +27,7 @@ def test_generic_usage(capsys, level):
 
     text = re.sub(r'-\d+-\d+\s+\d+:\d+\:\d+\,\d+', repl='-00-00 00:00:00,000', string=capsys.readouterr().err)
     text = re.sub(r':\d+:', repl=':00:', string=text)
-    gf1 = GoldenFile(util.get_src_path(__file__, 'examples', f'logging_pattern_{level}.txt'))
+    gf1 = GoldenFile(util.get_relative_path(__file__, 'examples', f'logging_pattern_{level}.txt'))
     # gf1.make(text)
     assert_that(text, equal_to(gf1.read()))
 

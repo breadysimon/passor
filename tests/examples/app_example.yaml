@@ -1,14 +1,13 @@
-#
-responseTemplate:
+response:
   fields:
     code: status
     msg: retMsg
     data: data
   successCode: SUCCESS
-codeGeneration:
+codeGen:
   snakeCaseStyle: false
   functionNameLevel: 1
-environments:
+env:
   sit:
     apiUrlRoot: https://sit-site/
     dbLink: sqlite:///db.sqlite
@@ -18,12 +17,7 @@ environments:
       db0: sqlite:///db.sqlite
       db1: sqlite:///db1.sqlite
 apis:
-  vairablesInTemplate:
-    path: aa
-    request: {id: '${1+1}', d: {x: [1, 888, 3]}}
-  postprocessor:
-    path: aaa/bbb/xxx1
-    method: get
-  Dummy:
-    path: dummy
-
+  generic:
+    path: aaa/bbb/xxx
+    response:
+      AAA: {x: 1, y: '2'}

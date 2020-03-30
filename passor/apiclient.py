@@ -2,82 +2,72 @@ import json
 import os
 import re
 
-from passor.config import get_env
+from box import Box
+from ruamel import yaml
+
+from passor.config import config, get_env
 from passor.logging import rootLogger
 
 logger = rootLogger.getChild(__name__)
-'''responseTemplate:
-  fields:
-    code: status
-    msg: retMsg
-    data: data
-  successCode: SUCCESS
-codeGeneration:
-  snakeCaseStyle: false
-  functionNameDepth: 1
-environments:
-  sit:
-    apiRoot: https://sit-console.ctcfin.com
-    dbConnection: sqlite:///db.sqlite
-  uat:
-    apiRoot: https://uat-console.ctcfin.com
-    dbConnection:
-      db0: sqlite:///db.sqlite
-      db1: sqlite:///db1.sqlite
-      '''
 
 
-class ApplicationBuilder:
-    def __init__(self):
-        self.environments = {}
-        self.response_enveloped = True
-        self.response_fields = dict(code='status', msg='retMsg', data='data')
-        self.success_code = 'SUCCESS'
+class ServiceCallerFactory:
+    apps = {}
 
-    def build(self):
-        app = Application()
-        env = get_env()
-        app.environment = self.environments.get(env,None)
-        if self.response_enveloped:
-            app.response_fields = self.response_fields
-            app.success_code = self.success_code
+    def __init__(self, config_home):
+        self.config_home = config_home
+
+    def get_caller(self, name):
+        path = os.path.join(self.config_home, f'app_{name}.yaml')
+        with open(path, 'r') as f:
+            spec = yaml.safe_load(f)
+            app = Application(name, spec)
         return app
-
-    def set_response_fields(self, code='status', msg='retMsg', data='data'):
-        self.response_fields = dict(code=code, msg=msg, data=data)
-        return self
-
-    def set_success_code(self, c):
-        self.success_code = c
-        return self
-
-    def add_environment(self, name, api_root, db_connections=None):
-        self.environments['name'] = dict(apiRoot=api_root, dbConnections=db_connections)
-        return self
 
 
 class Application:
-    environment = {}
-    response_enveloped = True
-    response_fields = {}
-    success_code = ''
+    def __init__(self, name, spec):
+        self.name = name
+        self.envelope = {}
+        self.env = 'sit'
+        self.L = config.get_locale('en')
+        self.load_spec(spec)
 
-    def create_api_client(self, js):
-        return ApiClient(self, js)
+    def validate_spec(self, spec):
+        valid, msg = True, ""
+        env = get_env()
+        if self.L.CFG_ENV not in spec:
+            valid = False
+            msg = 'no environments config found'
+        elif env not in spec[self.L.CFG_ENV]:
+            valid = False
+            msg = f'"{env} is not found in environments"'
 
-class RequestSpec:
-    path = ''
-    def __init__(self):
-        pass
+        return valid, msg
+
+    def load_spec(self, spec):
+        valid, msg = self.validate_spec(spec)
+        if not valid:
+            logger.error(f'invalid application config: {msg}')
+            return
+
+        if self.L.CFG_RESPONSE in spec:
+            self.envelope['fields'] = spec[self.L.CFG_RESPONSE][self.L.CFG_FIELDS]
+            self.envelope['success_code'] = spec[self.L.CFG_RESPONSE][self.L.CFG_SUCC_CODE]
+        env = get_env()
+        self.root_uri = spec[self.L.CFG_ENV][env][self.L.CFG_BASE_URI]
+        self.dbLink = spec[self.L.CFG_ENV][env][self.L.CFG_DB_URI]
+        self.apis = spec[self.L.CFG_API_SPEC]
+
+    def create_api_client(self, name):
+        return ApiClient(self, self.apis[name])
+
 
 class ApiClient:
-    def __init__(self, app, js):
+    def __init__(self, app, spec):
         self.app = app
-        self.config = json.loads(js)
-        self.spec = {}
+        self.config = spec
 
-    def add_request(self,name,path,response):
-        self.spec[name] =
 
 def _is_json(p):
     try:
