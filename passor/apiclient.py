@@ -2,24 +2,82 @@ import json
 import os
 import re
 
+from passor.config import get_env
 from passor.logging import rootLogger
 
 logger = rootLogger.getChild(__name__)
+'''responseTemplate:
+  fields:
+    code: status
+    msg: retMsg
+    data: data
+  successCode: SUCCESS
+codeGeneration:
+  snakeCaseStyle: false
+  functionNameDepth: 1
+environments:
+  sit:
+    apiRoot: https://sit-console.ctcfin.com
+    dbConnection: sqlite:///db.sqlite
+  uat:
+    apiRoot: https://uat-console.ctcfin.com
+    dbConnection:
+      db0: sqlite:///db.sqlite
+      db1: sqlite:///db1.sqlite
+      '''
+
+
+class ApplicationBuilder:
+    def __init__(self):
+        self.environments = {}
+        self.response_enveloped = True
+        self.response_fields = dict(code='status', msg='retMsg', data='data')
+        self.success_code = 'SUCCESS'
+
+    def build(self):
+        app = Application()
+        env = get_env()
+        app.environment = self.environments.get(env,None)
+        if self.response_enveloped:
+            app.response_fields = self.response_fields
+            app.success_code = self.success_code
+        return app
+
+    def set_response_fields(self, code='status', msg='retMsg', data='data'):
+        self.response_fields = dict(code=code, msg=msg, data=data)
+        return self
+
+    def set_success_code(self, c):
+        self.success_code = c
+        return self
+
+    def add_environment(self, name, api_root, db_connections=None):
+        self.environments['name'] = dict(apiRoot=api_root, dbConnections=db_connections)
+        return self
 
 
 class Application:
-    def __init__(self, js):
-        self.config = json.loads(js)
+    environment = {}
+    response_enveloped = True
+    response_fields = {}
+    success_code = ''
 
     def create_api_client(self, js):
         return ApiClient(self, js)
 
+class RequestSpec:
+    path = ''
+    def __init__(self):
+        pass
 
 class ApiClient:
     def __init__(self, app, js):
         self.app = app
         self.config = json.loads(js)
+        self.spec = {}
 
+    def add_request(self,name,path,response):
+        self.spec[name] =
 
 def _is_json(p):
     try:
