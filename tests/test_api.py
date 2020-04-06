@@ -44,8 +44,8 @@ def test_assertions(api):
     with MyMock(data=dict(x=1, y='2', z='0000aaaa111', u=dict(v=[5, 6, 7], w=dict(x=9)))) as m:
         api.c_断言测试1() \
             .check_ok() \
-            .check_values('响应应该符合预期', x=1) \
-            .check_values(x=1, y='2', z='%aaa', code='SUCCESS', msg='ok') \
+            .check_data('响应应该符合预期', x=1) \
+            .check_data(x=1, y='2', z='%aaa', code='SUCCESS', msg='ok') \
             .check_keys('x', 'y', 'z') \
             .check_by_example('AAA') \
             .check_by_example('Jinja2') \
@@ -57,7 +57,7 @@ def test_assertions(api):
 
         api.c_断言测试2() \
             .check_by_example() \
-            .check_values(x=1, y='2', z='%aaa', code='SUCCESS', msg='ok')
+            .check_data(x=1, y='2', z='%aaa', code='SUCCESS', msg='ok')
 
     with MyMock(status='FAIL'):
         with pytest.raises(AssertionError, match=r"应该{'code': 'SUCCESS'}"):

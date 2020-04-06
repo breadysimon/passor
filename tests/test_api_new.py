@@ -47,7 +47,10 @@ class ResultChecker:
         assert self.result.status_code == self.expected_http_status_code
         return self
 
-    def check_values(self, should='', **kwargs):
+    def check_status(self, status_code=200, **kwargs):
+        assert self.result.status_code == status_code
+
+    def check_data(self, should='', **kwargs):
         assertion = should or f'should have {kwargs}'
         for x in kwargs:
             v = self.data[x]
@@ -61,7 +64,20 @@ class ResultChecker:
 
 class EnvelopedResultChecker(ResultChecker):
     def resolve_data(self):
-        self.data = self.result.json()['data']
+        r = self.result.json()
+        fields = self.api_model.app.envelope['fields']
+        self.data = r[fields['data']]
+        self.success_code = self.api_model.app.envelope['successCode']
+        self.status = dict(code=r[fields['code']], msg=r[fields['msg']])
+
+    def check_status(self, status_code=200, **kwargs):
+        assert self.result.status_code == status_code
+        if 'msg' in kwargs:
+            assert self.status['msg'] == kwargs['msg']
+        expected = self.success_code
+        if 'code' in kwargs:
+            expected = kwargs['code']
+        assert self.status['code'] == expected
 
 
 class ApiModel:
@@ -76,13 +92,18 @@ class ApiModel:
 
 
 class Application:
-    def __init__(self, enveloped=False):
+    def __init__(self, enveloped=False, envelope={}):
         self.enveloped = enveloped
+        self.envelope = envelope or None
 
 
 @pytest.fixture
 def tester():
-    app = Application(enveloped=True)
+    app = Application(enveloped=True,
+                      envelope=dict(
+                          fields=dict(code='status', msg='retMsg', data='data'),
+                          successCode='SUCCESS')
+                      )
     api = ApiModel(app, '/test', 'post', '', '')
     t = ApiTester('http://localhost:8080')
     t.add_api('example', api)
@@ -93,4 +114,5 @@ def test_generic(tester):
     with MyMock(data=dict(x=1, y='2', z='0000aaaa111', u=dict(v=[5, 6, 7], w=dict(x=9)))) as m:
         tester.invoke('example') \
             .check_ok() \
-            .check_values(x=1, y='2',z='%aaaa')
+            .check_data(x=1, y='2', z='%aaaa', u=dict(v=[5, 6, 7], w=dict(x=9))) \
+            .check_status(code='SUCCESS', msg='ok')
