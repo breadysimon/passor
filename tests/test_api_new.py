@@ -30,28 +30,38 @@ class ApiTester:
 
 
 class ResultChecker:
+    data = None
+
     def __init__(self, api, result):
         self.api_model = api
         self.result = result
+
         self.expected_http_status_code = 200
+
+        self.resolve_data()
+
+    def resolve_data(self):
+        self.data = self.result.json()
 
     def check_ok(self):
         assert self.result.status_code == self.expected_http_status_code
         return self
 
-    def check_value(self, key, value):
-        assert self.result.json()[key] == value
+    def check_values(self, should='', **kwargs):
+        assertion = should or f'should have {kwargs}'
+        for x in kwargs:
+            v = self.data[x]
+            expected = kwargs[x]
+            if isinstance(expected, str) and expected.startswith('%'):
+                assert expected.strip('%') in v, assertion
+            else:
+                assert v == expected, assertion
         return self
 
 
 class EnvelopedResultChecker(ResultChecker):
-    def __init__(self, api, result):
-        self.api_model = api
-        self.result = result
-        self.expected_http_status_code = 200
-
-    def check_value(self, key, value):
-        assert self.result.json()['data'][key] == value
+    def resolve_data(self):
+        self.data = self.result.json()['data']
 
 
 class ApiModel:
@@ -83,4 +93,4 @@ def test_generic(tester):
     with MyMock(data=dict(x=1, y='2', z='0000aaaa111', u=dict(v=[5, 6, 7], w=dict(x=9)))) as m:
         tester.invoke('example') \
             .check_ok() \
-            .check_value('x', 1)
+            .check_values(x=1, y='2',z='%aaaa')
