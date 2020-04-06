@@ -23,13 +23,20 @@ class ApiTester:
                 data=api.request_json  # ,files=files, #params=self.query_params, #headers=headers
             )
             self.results.append(result)
-            if api.app.enveloped:
-                return EnvelopedResultChecker(api, result)
-            else:
-                return ResultChecker(api, result)
+            return CheckerFactory.get(api.checker_type, api, result)
 
 
-class ResultChecker:
+class CheckerFactory:
+    @staticmethod
+    def get(name, api, result):
+        if name == 'Rest':
+            return RestResultChecker(api, result)
+        elif name == 'EnvelopedRest':
+            return EnvelopedResultChecker(api, result)
+        return None
+
+
+class RestResultChecker:
     data = None
 
     def __init__(self, api, result):
@@ -62,7 +69,7 @@ class ResultChecker:
         return self
 
 
-class EnvelopedResultChecker(ResultChecker):
+class EnvelopedResultChecker(RestResultChecker):
     def resolve_data(self):
         r = self.result.json()
         fields = self.api_model.app.envelope['fields']
@@ -82,24 +89,27 @@ class EnvelopedResultChecker(ResultChecker):
 
 class ApiModel:
     path = ''
+    checker_type = 'Rest'
 
-    def __init__(self, app, path, method, request_json, response_json):
+    def __init__(self, app, path, method, request_json, response_json, checker_type=''):
         self.path = path
         self.method = method
         self.request_json = request_json
         self.response_json = response_json
         self.app = app
+        self.checker_type = checker_type or self.app.checker_type
 
 
 class Application:
-    def __init__(self, enveloped=False, envelope={}):
-        self.enveloped = enveloped
+
+    def __init__(self, envelope={}, checker_type='Rest'):
         self.envelope = envelope or None
+        self.checker_type = checker_type
 
 
 @pytest.fixture
 def tester():
-    app = Application(enveloped=True,
+    app = Application(checker_type='EnvelopedRest',
                       envelope=dict(
                           fields=dict(code='status', msg='retMsg', data='data'),
                           successCode='SUCCESS')
