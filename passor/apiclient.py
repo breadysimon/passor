@@ -5,6 +5,7 @@ import re
 from box import Box
 from ruamel import yaml
 
+from passor import util
 from passor.config import config, get_env
 from passor.logging import rootLogger
 
@@ -313,3 +314,4 @@ def _write_golden_file(file, data_string):
     with open(file, 'wb+') as f:
         logger.warning(f'generate golden file: {file}')
         f.write(data_string.encode('utf-8'))
+
