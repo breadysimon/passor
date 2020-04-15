@@ -11,10 +11,6 @@ from passor.logging import rootLogger
 logger = rootLogger.getChild(__name__)
 logger.setLevel(logging.DEBUG)
 
-API_SPEC_1='''
-
-'''
-
 @pytest.fixture
 def api():
     config.set_env('sit')
