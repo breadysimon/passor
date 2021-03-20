@@ -16,7 +16,7 @@ setup(
         'Faker==3.0.0',
         'idna==2.8',
         'importlib-metadata==1.3.0',
-        'Jinja2==2.11.1',
+        'Jinja2==2.11.3',
         'jmespath==0.9.4',
         'jsonmerge==1.7.0',
         'jsonpath-rw==1.4.0',
