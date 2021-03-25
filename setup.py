@@ -36,7 +36,7 @@ setup(
         'pytest-assume==2.2.0',
         'python-box==3.4.6',
         'python-dateutil==2.8.1',
-        'PyYAML==5.2',
+        'PyYAML==5.4',
         'requests==2.22.0',
         'requests-mock==1.7.0',
         'retry==0.9.2',
