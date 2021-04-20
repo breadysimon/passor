@@ -26,7 +26,7 @@ setup(
         'packaging==19.2',
         'pluggy==0.6.0',
         'ply==3.11',
-        'py==1.8.1',
+        'py==1.10.0',
         'pygelf==0.3.4',
         'PyHamcrest==1.9.0',
         'PyMySQL==0.9.3',
