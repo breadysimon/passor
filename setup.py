@@ -51,7 +51,7 @@ setup(
         'SQLAlchemy==1.3.12',
         'tabulate==0.8.6',
         'text-unidecode==1.3',
-        'urllib3==1.25.7',
+        'urllib3==1.26.5',
         'wcwidth==0.1.8',
         'zipp==0.6.0'
     ],
