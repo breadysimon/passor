@@ -9,7 +9,7 @@ setup(
     },
     install_requires=[
         'attrs==19.3.0',
-        'certifi==2019.11.28',
+        'certifi==2022.12.7',
         'chardet==3.0.4',
         'click==6.7',
         'decorator==4.4.1',
